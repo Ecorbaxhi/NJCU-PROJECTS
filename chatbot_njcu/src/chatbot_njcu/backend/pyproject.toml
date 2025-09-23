@@ -1,0 +1,19 @@
+[project]
+name = "chatbot-njcu"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Rezart Abazi",email = "rezart392@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "chatbot_njcu", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
