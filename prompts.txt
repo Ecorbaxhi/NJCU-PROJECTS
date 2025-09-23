@@ -1,0 +1,7 @@
+@workspace I want you to create a chatbot for the incoming students which can answer all their questions, i want you first to generate the folder structure for my project .
+I want to have a frontend done with javascript and a backend done in fast api.
+i will have a vector database aswell for storing the embedded questions and answers.
+The goal is to create a RAG system which is able to answer the user queries based on the knowledge base availbale. the framework has to be langchain and langgraph.
+At first i need you to provide me a easy and comprehensive folder structure where the frontend and backend are properly isolated. follow the best practices of application development. I'm  using poetry for dependencies managment.
+Don't provide any code yet just the structure and then wait for my input for the next step.
+Keep in mind this is the fist time for me doing this kind of project.
