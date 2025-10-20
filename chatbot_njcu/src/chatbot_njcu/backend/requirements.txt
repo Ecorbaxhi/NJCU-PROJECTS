@@ -1,0 +1,11 @@
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+pydantic>=2.5.0
+langchain-core>=0.0.300
+langchain-community>=0.0.50
+sentence-transformers>=2.2.2
+faiss-cpu>=1.7.4
+python-multipart>=0.0.6
+typing-extensions>=4.7.1
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
