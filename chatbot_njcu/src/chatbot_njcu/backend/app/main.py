@@ -175,10 +175,15 @@ def query(req: QueryRequest):
                 sources=[{"text": doc.page_content, "metadata": doc.metadata}],
             )
 
-    retriever = vs.as_retriever(search_kwargs={"k": k})
-    docs = retriever.get_relevant_documents(req.question)
-    if not docs:
-        return QueryResponse(answer="Sorry — I couldn’t find that in the knowledge base.", sources=[])
+# 2) fall back to normal semantic retrieval (simple & version-proof)
+docs = vs.similarity_search(req.question, k=k)
+
+if not docs:
+    return QueryResponse(
+        answer="Sorry — I couldn’t find that in the knowledge base.",
+        sources=[]
+    )
+
 
     best = docs[0]
     ans = best.page_content.split("\n\nA:", 1)[-1].strip()
@@ -186,3 +191,4 @@ def query(req: QueryRequest):
         answer=ans,
         sources=[{"text": d.page_content, "metadata": d.metadata} for d in docs],
     )
+
