@@ -1,194 +1,214 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Career Center Chat (local)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NJCU Career Center Chatbot</title>
   <style>
-    body { font: 16px/1.4 system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-size: 20px; }
-    #q { width: 100%; height: 90px; }
-    #ask { padding: 8px 14px; }
-    #ans { background:#f7f7f9; padding:12px; border-radius:8px; margin-top:12px; }
-    #ans p { margin: 0 0 8px; }
-    #ans ul { margin: 0 0 8px 18px; }
-    .src { font-size: 12px; color:#555; margin-top:8px; }
+    :root {
+      --njcu-green: #00543C;
+      --njcu-gold: #FFC72C;
+      --background: #f5f7f5;
+      --chat-bg: #ffffff;
+      --user-msg: #DCF8C6;
+      --bot-msg: #e8f0ed;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Inter", "Roboto", system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--background);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: var(--njcu-green);
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1.5rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    header img {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .chat-container {
+      background: var(--chat-bg);
+      width: 100%;
+      max-width: 700px;
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .message {
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      max-width: 80%;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: var(--bot-msg);
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: var(--user-msg);
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      background: white;
+      padding: 0.5rem;
+    }
+
+    .chat-input textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      padding: 0.5rem;
+      font-size: 1rem;
+      height: 60px;
+      outline: none;
+    }
+
+    .chat-input button {
+      background: var(--njcu-gold);
+      border: none;
+      color: black;
+      font-weight: 600;
+      padding: 0 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .chat-input button:hover {
+      background: #e5b800;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 0.8rem;
+      background: #fafafa;
+      color: #555;
+      border-top: 1px solid #ddd;
+    }
+
+    @media (max-width: 600px) {
+      .chat-container {
+        height: 85vh;
+      }
+      header h1 {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Career Center Chat (local)</h1>
+  <header>
+    <img src="logo.png" alt="NJCU Logo" />
+    <h1>Center for Career and Professional Development</h1>
+  </header>
 
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-    <button id="reload">Reload index</button>
-    <span id="ver" style="font-size:12px;color:#555;"></span>
-  </div>
+  <main>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatBox">
+        <div class="message bot">👋 Hi! I’m your NJCU Career Assistant. Ask me anything about the Career Center.</div>
+      </div>
+      <div class="chat-input">
+        <textarea id="userInput" placeholder="Type your question here..."></textarea>
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </main>
 
-  <textarea id="q" placeholder="Type your question..."></textarea><br />
-  <button id="ask">Ask</button>
-
-  <div id="ans"></div>
-
-  <div id="fb" style="display:none;margin-top:8px;">
-    <span style="margin-right:6px;">Was this helpful?</span>
-    <button id="fb-yes" title="Yes">👍</button>
-    <button id="fb-no"  title="No">👎</button>
-    <span id="fb-msg" style="margin-left:8px;font-size:12px;color:#666;"></span>
-  </div>
+  <footer>
+    © 2025 New Jersey City University – Career Center Chatbot
+  </footer>
 
   <script>
-    const API_BASE = window.location.origin;
+    const sendBtn = document.getElementById("sendBtn");
+    const userInput = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
 
-    // --- State for feedback ---
-    let lastQuestion = "";
-    let lastAnswer   = "";
-    let versionString = "";
-
-    // -------- Simple safe Markdown renderer (bold, italic, bullets, links) --------
-    function escapeHtml(s) {
-      return (s || "").replace(/[&<>"']/g, c => (
-        { "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#39;" }[c]
-      ));
-    }
-    function linkify(s) {
-      return s.replace(
-        /(https?:\/\/[^\s<>()]+)(?=[\s<>()]|$)/g,
-        (m) => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`
-      );
-    }
-    function renderMarkdown(md) {
-      let s = escapeHtml(md || "");
-      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-      s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-      s = s.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
-
-      const lines = s.split(/\r?\n/);
-      let out = [], inList = false;
-      for (const line of lines) {
-        const m = line.match(/^\s*[-*]\s+(.*)$/);
-        if (m) {
-          if (!inList) { out.push("<ul>"); inList = true; }
-          out.push(`<li>${m[1]}</li>`);
-        } else {
-          if (inList) { out.push("</ul>"); inList = false; }
-          out.push(line);
-        }
-      }
-      if (inList) out.push("</ul>");
-      s = out.join("\n");
-
-      s = s.replace(/\n{2,}/g, "</p><p>");
-      s = s.replace(/\n/g, "<br>");
-      return linkify(`<p>${s}</p>`);
-    }
-    // ------------------------------------------------------------------------------
-
-    const askBtn    = document.getElementById("ask");
-    const qEl       = document.getElementById("q");
-    const ansEl     = document.getElementById("ans");
-    const verEl     = document.getElementById("ver");
-    const reloadBtn = document.getElementById("reload");
-    const fbYes = document.getElementById("fb-yes");
-    const fbNo  = document.getElementById("fb-no");
-    const fbMsg = document.getElementById("fb-msg");
-    const fbBar = document.getElementById("fb");
-
-    async function showVersion() {
-      try {
-        const r = await fetch(API_BASE + "/version");
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const data = await r.json();
-        versionString = data.version || "";
-        verEl.textContent = `Source: ${data.csv_path} • Docs: ${data.docs} • ${data.version}`;
-      } catch {
-        verEl.textContent = "(version unavailable)";
-      }
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    async function ask() {
-      const question = qEl.value.trim();
+    async function sendMessage() {
+      const question = userInput.value.trim();
       if (!question) return;
-
-      askBtn.disabled = true;
-      ansEl.textContent = "Thinking…";
-      fbBar.style.display = "none";
+      appendMessage("user", question);
+      userInput.value = "";
 
       try {
-        const res = await fetch(API_BASE + "/query", {
+        const res = await fetch("/query", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ question, k: 3 })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
         });
-        if (!res.ok) throw new Error("HTTP " + res.status);
+
+        if (!res.ok) throw new Error("Server error");
         const data = await res.json();
-
-        ansEl.innerHTML =
-          `<div style="font-weight:600;margin-bottom:6px;">Answer</div>` +
-          renderMarkdown(data.answer) +
-          (data.sources?.length
-            ? `<div class="src"><strong>Top sources</strong><br>${
-                data.sources.slice(0,3)
-                  .map(s => `• ${escapeHtml(s.metadata?.question ?? '(unknown source)')}`)
-                  .join("<br>")
-              }</div>` : "");
-
-        lastQuestion = question;
-        lastAnswer   = data.answer || "";
-        fbMsg.textContent = "";
-        fbBar.style.display = "inline-block";
-      } catch (e) {
-        ansEl.textContent = "Error: " + e.message;
-      } finally {
-        askBtn.disabled = false;
+        appendMessage("bot", data.answer || "I’m not sure about that one.");
+      } catch (err) {
+        appendMessage("bot", "⚠️ Sorry, I couldn’t reach the server.");
       }
     }
 
-    async function reloadIndex() {
-      reloadBtn.disabled = true;
-      const was = verEl.textContent;
-      verEl.textContent = "Reloading index…";
-      try {
-        const r = await fetch(API_BASE + "/reload", { method: "POST" });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        await showVersion();
-      } catch (e) {
-        verEl.textContent = "Reload failed: " + e.message;
-        setTimeout(() => (verEl.textContent = was), 4000);
-      } finally {
-        reloadBtn.disabled = false;
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
       }
-    }
-
-    async function sendFeedback(helpful) {
-      try {
-        fbYes.disabled = fbNo.disabled = true;
-        fbMsg.textContent = "Sending…";
-        const r = await fetch(API_BASE + "/feedback", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            question: lastQuestion,
-            answer:   lastAnswer,
-            helpful:  helpful,
-            version:  versionString
-          })
-        });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        fbMsg.textContent = "Thanks for your feedback!";
-        setTimeout(() => { fbBar.style.display = "none"; }, 1500);
-      } catch {
-        fbMsg.textContent = "Couldn’t send feedback.";
-      } finally {
-        fbYes.disabled = fbNo.disabled = false;
-      }
-    }
-
-    askBtn.addEventListener("click", ask);
-    qEl.addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) ask(); });
-    reloadBtn.addEventListener("click", reloadIndex);
-    fbYes.addEventListener("click", () => sendFeedback(true));
-    fbNo .addEventListener("click", () => sendFeedback(false));
-
-    showVersion();
+    });
   </script>
 </body>
 </html>
+
