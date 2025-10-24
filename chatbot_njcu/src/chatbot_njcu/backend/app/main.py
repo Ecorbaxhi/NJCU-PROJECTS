@@ -19,21 +19,25 @@ STORE_DIR = os.getenv(
     "STORE_DIR",
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "vectorstore"))
 )
-
 PUBLIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public"))
 
 app = FastAPI(title="NJCU Chatbot API")
 
-# CORS (optional now that we serve frontend & backend together)
+# -------------------- CORS --------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://njcu-projects.onrender.com", "https://ecorbaxhi.github.io"]
+    allow_origins=[
+        "https://njcu-projects.onrender.com",  # your Render backend origin
+        "https://ecorbaxhi.github.io",          # your GitHub Pages (if it calls the API)
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Serve static chat page
+# -------------------- Static frontend --------------------
 app.mount("/static", StaticFiles(directory=PUBLIC_DIR), name="static")
 
 @app.get("/")
@@ -192,7 +196,4 @@ def query(req: QueryRequest):
         answer=ans,
         sources=[{"text": d.page_content, "metadata": d.metadata} for d in docs],
     )
-
-
-
 
