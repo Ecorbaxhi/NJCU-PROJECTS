@@ -27,7 +27,7 @@ app = FastAPI(title="NJCU Chatbot API")
 # CORS (optional now that we serve frontend & backend together)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500", "*"],
+    allow_origins=["https://njcu-projects.onrender.com", "https://ecorbaxhi.github.io"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -192,6 +192,7 @@ def query(req: QueryRequest):
         answer=ans,
         sources=[{"text": d.page_content, "metadata": d.metadata} for d in docs],
     )
+
 
 
 
