@@ -135,6 +135,34 @@
       border-top: 1px solid #ddd;
     }
 
+    /* ✅ Feedback bar styling */
+    #feedback-bar {
+      text-align: center;
+      margin-top: 8px;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+      padding: 6px 0;
+    }
+
+    #feedback-bar button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      margin: 0 4px;
+    }
+
+    /* ✅ Watermark */
+    .logo-watermark {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      opacity: 0.15;
+      width: 100px;
+      pointer-events: none;
+      user-select: none;
+    }
+
     @media (max-width: 600px) {
       .chat-container {
         height: 85vh;
@@ -147,7 +175,8 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="NJCU Logo" />
+    <!-- ✅ Correct relative path for your logo -->
+    <img src="/static/logo.png" alt="NJCU Logo" />
     <h1>Center for Career and Professional Development</h1>
   </header>
 
@@ -160,6 +189,13 @@
         <textarea id="userInput" placeholder="Type your question here..."></textarea>
         <button id="sendBtn">Send</button>
       </div>
+      <!-- ✅ Feedback bar -->
+      <div id="feedback-bar" style="display:none;">
+        <span>Was this helpful?</span>
+        <button id="fb-yes" title="Yes">👍</button>
+        <button id="fb-no"  title="No">👎</button>
+        <span id="fb-msg" style="margin-left:8px;font-size:12px;color:#555;"></span>
+      </div>
     </div>
   </main>
 
@@ -167,10 +203,18 @@
     © 2025 New Jersey City University – Career Center Chatbot
   </footer>
 
+  <!-- ✅ Watermark -->
+  <img src="/static/logo.png" alt="NJCU watermark" class="logo-watermark" />
+
   <script>
     const sendBtn = document.getElementById("sendBtn");
     const userInput = document.getElementById("userInput");
     const chatBox = document.getElementById("chatBox");
+    const fbBar = document.getElementById("feedback-bar");
+    const fbYes = document.getElementById("fb-yes");
+    const fbNo = document.getElementById("fb-no");
+    const fbMsg = document.getElementById("fb-msg");
+    let lastQuestion = "", lastAnswer = "";
 
     function appendMessage(sender, text) {
       const msg = document.createElement("div");
@@ -196,11 +240,45 @@
         if (!res.ok) throw new Error("Server error");
         const data = await res.json();
         appendMessage("bot", data.answer || "I’m not sure about that one.");
+
+        // ✅ Show feedback bar
+        lastQuestion = question;
+        lastAnswer = data.answer || "";
+        fbBar.style.display = "block";
+        fbMsg.textContent = "";
+        fbYes.disabled = fbNo.disabled = false;
+
       } catch (err) {
         appendMessage("bot", "⚠️ Sorry, I couldn’t reach the server.");
       }
     }
 
+    async function sendFeedback(helpful) {
+      try {
+        fbYes.disabled = fbNo.disabled = true;
+        fbMsg.textContent = "Sending...";
+        const res = await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: lastQuestion,
+            answer: lastAnswer,
+            helpful: helpful,
+            version: "(web)"
+          }),
+        });
+        if (!res.ok) throw new Error("Server error");
+        fbMsg.textContent = "Thanks for your feedback!";
+        setTimeout(() => fbBar.style.display = "none", 1500);
+      } catch {
+        fbMsg.textContent = "Couldn’t send feedback.";
+      } finally {
+        fbYes.disabled = fbNo.disabled = false;
+      }
+    }
+
+    fbYes.addEventListener("click", () => sendFeedback(true));
+    fbNo.addEventListener("click", () => sendFeedback(false));
     sendBtn.addEventListener("click", sendMessage);
     userInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -211,4 +289,5 @@
   </script>
 </body>
 </html>
+
 
