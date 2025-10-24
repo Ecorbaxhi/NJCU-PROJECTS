@@ -161,6 +161,8 @@ def _norm(s: str) -> str:
 def query(req: QueryRequest):
     vs = get_db()
     k = max(1, (req.k or 3))
+
+    # 1) try exact (normalized) question match from a larger candidate pool
     try:
         candidates = vs.similarity_search_with_score(req.question, k=max(10, k))
     except Exception:
@@ -175,15 +177,14 @@ def query(req: QueryRequest):
                 sources=[{"text": doc.page_content, "metadata": doc.metadata}],
             )
 
-# 2) fall back to normal semantic retrieval (simple & version-proof)
-docs = vs.similarity_search(req.question, k=k)
+    # 2) fall back to normal semantic retrieval (simpler & version-proof)
+    docs = vs.similarity_search(req.question, k=k)
 
-if not docs:
-    return QueryResponse(
-        answer="Sorry — I couldn’t find that in the knowledge base.",
-        sources=[]
-    )
-
+    if not docs:
+        return QueryResponse(
+            answer="Sorry — I couldn’t find that in the knowledge base.",
+            sources=[]
+        )
 
     best = docs[0]
     ans = best.page_content.split("\n\nA:", 1)[-1].strip()
@@ -191,4 +192,6 @@ if not docs:
         answer=ans,
         sources=[{"text": d.page_content, "metadata": d.metadata} for d in docs],
     )
+
+
 
