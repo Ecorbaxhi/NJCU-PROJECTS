@@ -166,6 +166,18 @@ def query(req: QueryRequest):
     vs = get_db()
     k = max(1, (req.k or 3))
 
+
+    # --- Special intent: respond to "thank you" or similar ---
+    gratitude = ["thank you", "thanks", "thx", "thank u"]
+    q_lower = req.question.strip().lower()
+    if any(word in q_lower for word in gratitude):
+        return QueryResponse(
+            answer="You're very welcome! Always happy to assist 😊",
+            sources=[]
+        )
+
+
+
     # 1) try exact (normalized) question match from a larger candidate pool
     try:
         candidates = vs.similarity_search_with_score(req.question, k=max(10, k))
@@ -196,4 +208,5 @@ def query(req: QueryRequest):
         answer=ans,
         sources=[{"text": d.page_content, "metadata": d.metadata} for d in docs],
     )
+
 
